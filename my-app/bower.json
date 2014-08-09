@@ -1,0 +1,23 @@
+{
+  "name": "audio visualizer",
+  "version": "0.1.0",
+  "authors": [
+    "YongHun Byun <yonghunbyun@gmail.com>"
+  ],
+  "description": "audio visualizer",
+  "main": "main.js",
+  "moduleType": [
+    "node"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.1"
+  }
+}
