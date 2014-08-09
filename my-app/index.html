@@ -8,12 +8,33 @@
 
 <body>
 
+  <button class="button" id="btn-mp3-play">MP3 Play</button>
+  <button class="button" id="btn-mp3-stop" style="display:none">Stop</button>
   <div id="visuals" class="container"></div>
   <div id="controls"></div>
 
   <script>
   window.$ = window.jQuery = require('./bower_components/jquery/dist/jquery.min');
+  var mp3Playing = false;
+
+  var app = require('./js/app.js');
+
+  var Player  = require('./js/player')
+  var player = new Player('./my-app/audio/test.mp3');
+
+  document.getElementById('btn-mp3-play').onclick = function() {
+    mp3Playing = true;
+    $('#btn-mp3-stop').show();
+    player.play(function (err, player) {
+      console.log('playend!');
+    });
+  };
+
+  document.getElementById('btn-mp3-stop').onclick = function() {
+    player.stop();
+    mp3Playing = false;
+    $('#btn-mp3-stop').hide();
+  };
   </script>
-  <script src="./js/app.js"></script>
 </body>
 </html>

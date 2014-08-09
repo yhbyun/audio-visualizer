@@ -1,33 +1,36 @@
+
+var ipc     = require('ipc')
+  , fs      = require('fs')
+  , lame    = require('lame')
+  , Speaker = require('speaker')
+  , util    = require('util')
+  , events  = require('events')
+  , _       = require('underscore')
+  , analyzer = new require('stream').Transform();
+
 var winston = require('winston');
 
 var logger = new (winston.Logger)({
   transports: [
     new (winston.transports.Console)({ level:'info' }),
-    new (winston.transports.File)({ level:'debug', filename:'app.log'})
+    new (winston.transports.File)({ level:'debug', filename:'play.log'})
   ]
 });
 
-var container= document.getElementById('visuals');
-var controls = document.getElementById('controls');
-//var source = 'audio/Countdown(example).ogg';
-//var source = 'audio/paldo.mp3';
-//var source = 'audio/Early Riser.mp3';
-//var source = 'audio/16Hz-20kHz-Exp-1f-10sec.mp3';
-var source = 'audio/test.ogg';
-var bars = [];
+module.exports = Player;
 
-var maxH = (window.innerHeight || 800), maxHby2 = maxH / -2;
-var template = document.createElement('div');
-template.className = 'bar';
-
-for( var i = 0; i < 16; i++) {
-  bars.push( container.appendChild( template.cloneNode(true) ) );
+function errHandler(err) {
+  if (err) throw err;
+  return false;
 }
 
+var defaults = {
+};
 
-var context = new webkitAudioContext(),
+var maxH = (window.innerHeight || 800), maxHby2 = maxH / -2;
+var bars = $('.bar').get();
 
-currentvalue = new Array();
+var currentvalue = new Array();
 
 var frameBufferSize = 4096;
 var bufferSize = frameBufferSize/4;
@@ -37,34 +40,37 @@ var peak = new Float32Array(bufferSize);
 
 var fft = new FFT(bufferSize, 44100);
 
+analyzer._transform = function(x, encoding, cb) {
+  var left, right;
 
-function processAudio(e) {
-  if (mp3Playing) return;
+  //x.legnth : 73728, 애를 1024 * 4 = 4096 으로 바꿀 수 있는 방법은?
+  //var sample = x.length / (1024 * 4);
+  var sample = 1;
+  var channel = 2;
+  var n = x.length / (2 * sample * channel);
 
-  // Copy input arrays to output arrays to play sound
-  var inputArrayL = event.inputBuffer.getChannelData(0);
-  var inputArrayR = event.inputBuffer.getChannelData(1);
-  var outputArrayL = event.outputBuffer.getChannelData(0);
-  var outputArrayR = event.outputBuffer.getChannelData(1);
+  //console.log('x.length=' + x.length + ', n=' + n);
 
-  var n = inputArrayL.length;
   for (var i = 0; i < n; ++i) {
-    outputArrayL[i] = inputArrayL[i];
-    outputArrayR[i] = inputArrayR[i];
-    signal[i] = (inputArrayL[i] + inputArrayR[i]) / 2;              // create data frame for fft - deinterleave and mix down to mono
+    left = (x.readInt16LE(i * 2 * sample * channel) / 0x7fff);
+    if (channel === 2) {
+      right = (x.readInt16LE(i * 2 * sample * channel + 2) / 0x7fff);
+    } else {
+      right = left;
+    }
+    signal[i] = (left + right) / 2;    // create data frame for fft - deinterleave and mix down to mono
   }
 
-  if (signal[0]) {
-    //console.log('n=' + n + ', first=' + signal[0]);
-  }
+  //console.log('x.length=' + x.length + ', n=' + n + ', first=' + signal[0]);
 
   fft.forward(signal);
   var avgSpectrum = getAvgSpectrum();
+  //console.log(avgSpectrum.length); // 32개
 
   for (var i = 0, specLength = avgSpectrum.length/2; i < specLength; i++ ) {
     var bar = bars[i];
-    bar.style.height = ( fft.spectrum[i]*maxH ) + 'px';
-    bar.style.marginTop = ( fft.spectrum[i]*maxHby2 ) + 'px';
+    bar.style.height = (fft.spectrum[i] * maxH) + 'px';
+    bar.style.marginTop = (fft.spectrum[i] * maxHby2) + 'px';
     var r = Math.ceil((avgSpectrum[i+16]*10000)%255);
     var b = Math.ceil((avgSpectrum[i]*10000)%255);
     var g = Math.ceil( ((avgSpectrum[i]+avgSpectrum[i+16])*5000)%255);
@@ -72,19 +78,116 @@ function processAudio(e) {
     bar.style.background = color;
     bar.style.boxShadow = '0px 0px ' + (r+b+g)%20 +'px ' +color;
   }
-
+  
   if (signal[0]) {
     logger.debug('bar0 margintop : ' + bars[0].style.marginTop);
   }
+
+  this.push(x);
+  cb();
+};
+
+
+
+
+
+function Player(song, params) {
+  if (!song) return false;
+  this.song = song;
+  this.options = _.extend(defaults, params);
+  this.bindEvents();
+  events.EventEmitter.call(this);
+};
+
+util.inherits(Player, events.EventEmitter);
+
+Player.prototype.play = function(done) {
+  var self = this;
+
+  if (! done) this.on('done', _.isFunction(done) ? done : errHandler);
+  if (! this.song) return false;
+
+  play(this.song, function(err) {
+    self.emit('done', err);
+  }); 
+
+  function play(song, callback) {
+    fs.createReadStream(song, {
+        highWaterMark: 200
+      })
+      .pipe(new lame.Decoder())
+      .on('format', function(format) {
+        var speaker = new Speaker(format);
+        self.speaker = {};
+        self.speaker.readableStream = this;
+        self.speaker.Speaker = speaker;
+        self.emit('playing', song);
+        // this is where the song acturaly played end,
+        // can't trigger playend event here cause
+        // unpipe will fire this speaker's close event.
+        this.pipe(analyzer).pipe(speaker).on('close', function() {
+          self.emit('stopped', song);
+        });
+      })
+      .on('finish', function() {
+        self.emit('playend', song);
+        // switch to next one
+        callback(null);
+      });
+  }
 }
 
+/**
+ *
+ * Stop playing and unpipe stream.
+ * No params for now.
+ *
+ **/
+Player.prototype.stop = function() {
+  if (!this.speaker) return false;
+  this.speaker.readableStream.unpipe();
+  this.speaker.Speaker.end();
+  return false;
+}
+
+Player.prototype.getID3 = function(callback) {
+  if (! this.song) return false;
+
+  var self = this;
+  var file = fs.createReadStream(this.song);
+  var decoder = new lame.Decoder();
+  decoder.on('id3v1', function (id3) {
+    callback(id3);
+  });
+  decoder.on('id3v2', function (id3) {
+    callback(id3);
+  });
+  file.pipe(decoder);
+}
+
+/**
+ *
+ * Bind some useful events
+ * @events.playing: on playing, keeping play history up to date.
+ *
+ **/
+Player.prototype.bindEvents = function() {
+  var self = this;
+  this.on('playing', function(song) {
+    self.playing = song;
+  });
+}
+
+
+
+
+
 Array.prototype.getMax = function(){
-  return Math.max.apply( Math, this);
+ return Math.max.apply( Math, this);
 }
 
 function getAvgSpectrum(){
-  var spectrum = [],
-  ray = 0;
+  var spectrum = [], ray = 0;
   for(var i = 0, fftLen = (fft.spectrum.length/16); i < fftLen; i++ ){
     for(var j =0; j < 16; j++){
       ray += fft.spectrum[i*16 + j];
@@ -93,26 +196,7 @@ function getAvgSpectrum(){
     spectrum.push(ray);
   }
   return spectrum;
-}  
-
-window.addEventListener('load', function() {
-  // Add an audio element
-  audio = new Audio();
-  audio.src = source;
-  audio.preload = true;
-  audio.controls = true;
-
-  controls.appendChild(audio);
-
-  audio.addEventListener('canplaythrough', function() {
-    var node = context.createMediaElementSource(audio),
-      processor = context.createScriptProcessor(bufferSize, 2, 2);
-
-    processor.onaudioprocess = processAudio;
-    node.connect(processor);
-    processor.connect(context.destination);
-  });
-});
+} 
 
 
 /* 
@@ -2416,4 +2500,5 @@ Reverb.prototype.process = function (interleavedSamples){
    
   return outputSamples;
 };
+
 
