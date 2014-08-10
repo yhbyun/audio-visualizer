@@ -20,8 +20,8 @@ $ git clone https://github.com/yhbyun/node-speaker --branch hotfixes/branch spea
 $ cd speaker && npm install
 $ HOME=~/.atom-shell-gyp node-gyp rebuild --target=0.11.13 --arch=x64 --dist-url=https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/dist
 
-$ cd ..
-$ git clone https://github.com/jashkenas/underscore
+$ cd ../..
+$ npm install
 
 $ cd ..
 $ bower install
