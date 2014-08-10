@@ -88,6 +88,49 @@ analyzer._transform = function(x, encoding, cb) {
 };
 
 
+function analyze(x) {
+  var left, right;
+
+  //x.legnth : 73728, 애를 1024 * 4 = 4096 으로 바꿀 수 있는 방법은?
+  //var sample = x.length / (1024 * 4);
+  var sample = 1;
+  var channel = 2;
+  var n = x.length / (2 * sample * channel);
+
+  logger.debug('x.length=' + x.length + ', n=' + n);
+
+  for (var i = 0; i < n; ++i) {
+    left = (x.readInt16LE(i * 2 * sample * channel) / 0x7fff);
+    if (channel === 2) {
+      right = (x.readInt16LE(i * 2 * sample * channel + 2) / 0x7fff);
+    } else {
+      right = left;
+    }
+    signal[i] = (left + right) / 2;    // create data frame for fft - deinterleave and mix down to mono
+  }
+
+  //console.log('x.length=' + x.length + ', n=' + n + ', first=' + signal[0]);
+
+  fft.forward(signal);
+  var avgSpectrum = getAvgSpectrum();
+  //console.log(avgSpectrum.length); // 32개
+
+  for (var i = 0, specLength = avgSpectrum.length/2; i < specLength; i++ ) {
+    var bar = bars[i];
+    bar.style.height = (fft.spectrum[i] * maxH) + 'px';
+    bar.style.marginTop = (fft.spectrum[i] * maxHby2) + 'px';
+    var r = Math.ceil((avgSpectrum[i+16]*10000)%255);
+    var b = Math.ceil((avgSpectrum[i]*10000)%255);
+    var g = Math.ceil( ((avgSpectrum[i]+avgSpectrum[i+16])*5000)%255);
+    var color = 'rgb('+r+','+g+','+b+')';
+    bar.style.background = color;
+    bar.style.boxShadow = '0px 0px ' + (r+b+g)%20 +'px ' +color;
+  }
+  
+  if (signal[0]) {
+    //logger.debug('bar0 margintop : ' + bars[0].style.marginTop);
+  }
+};
 
 
 
@@ -122,10 +165,13 @@ Player.prototype.play = function(done) {
         self.speaker.readableStream = this;
         self.speaker.Speaker = speaker;
         self.emit('playing', song);
+        speaker.on('written', function(b) {
+          analyze(b);
+        });
         // this is where the song acturaly played end,
         // can't trigger playend event here cause
         // unpipe will fire this speaker's close event.
-        this.pipe(analyzer).pipe(speaker).on('close', function() {
+        this.pipe(speaker).on('close', function() {
           self.emit('stopped', song);
         });
       })
