@@ -1,14 +1,14 @@
 # Audio Visializer
 
-I tried but it failed.
+I tried .. but failed.
 
 
 ## How to Try
 
 ```
-$ git clone https://github.com/yhbyun/alarm-clock.git
+$ git clone https://github.com/yhbyun/audio-visualizer.git
 
-$ cd alarm-clock/my-app
+$ cd audio-visualizer/my-app
 $ mkdir node_modules && cd $_
 
 $ git clone https://github.com/yhbyun/node-lame --branch hotfixes/branch lame
@@ -28,5 +28,5 @@ $ bower install
 
 $ cd ..
 $ npm install
-$ grunt run
+$ gulp
 ```

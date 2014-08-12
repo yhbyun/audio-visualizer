@@ -1,16 +1,17 @@
 {
-  "name": "atom-shell-",
+  "name": "audio-visualizer",
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "install": "grunt install"
+    "install": "gulp install"
   },
-  "author": "chitacan",
-  "license": "BSD-2-Clause",
+  "author": "yhbyun",
+  "license": "MIT",
   "dependencies": {
-    "load-grunt-tasks": "*",
-    "grunt": "*",
-    "grunt-download-atom-shell": "*",
-    "grunt-shell": "*"
+  },
+  "devDependencies": {
+    "chalk": "^0.5.1",
+    "gulp": "^3.8.7",
+    "gulp-download-atom-shell": "0.0.4"
   }
 }
