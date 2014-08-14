@@ -16,7 +16,7 @@ gulp.task('init', function(cb) {
 
 gulp.task('downloadatomshell', ['init'], function(cb) {
   downloadatomshell({
-    version: '0.15.5',
+    version: '0.15.6',
     outputDir: dir
   }, cb);
 });
