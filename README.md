@@ -2,6 +2,12 @@
 
 I tried .. but failed.
 
+## Used Software
+
+- node pcckage
+    - node-lame
+    - node-speaker
+
 
 ## How to Try
 
