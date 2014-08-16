@@ -2,6 +2,8 @@
 
 I tried .. but failed.
 
+- There is a time gap between audio play and visualization.
+
 
 ## How to Try
 

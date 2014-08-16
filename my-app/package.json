@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "main": "main.js",
   "dependencies": {
+    "av": "^0.4.2",
+    "mp3": "^0.1.0",
     "underscore": "^1.6.0",
     "winston": "^0.7.3"
   }
