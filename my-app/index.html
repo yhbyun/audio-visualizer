@@ -10,6 +10,10 @@
 
   <button class="button" id="btn-mp3-play">MP3 Play</button>
   <button class="button" id="btn-mp3-stop" style="display:none">Stop</button>
+
+  <button class="button" id="btn-mp3-aurora-play">MP3 Play(aurora)</button>
+  <button class="button" id="btn-mp3-aurora-stop" style="display:none">Stop</button>
+
   <div id="visuals" class="container"></div>
   <div id="controls"></div>
 
@@ -21,6 +25,13 @@
 
   var Player  = require('./js/player')
   var player = new Player('./my-app/audio/test.mp3');
+
+  var AV = require('av');
+  require('mp3');
+  require('av/src/devices/webaudio');
+  var AnalyzerFilter = require('./js/filters/analyzer');
+  var analyzerFilter = new AnalyzerFilter();
+  var auroraPlayer;
 
   document.getElementById('btn-mp3-play').onclick = function() {
     mp3Playing = true;
@@ -34,6 +45,18 @@
     player.stop();
     mp3Playing = false;
     $('#btn-mp3-stop').hide();
+  };
+
+  document.getElementById('btn-mp3-aurora-play').onclick = function() {
+    auroraPlayer = AV.Player.fromFile('./my-app/audio/test.mp3');
+    auroraPlayer.filters = [analyzerFilter];
+
+    auroraPlayer.play();
+    $('#btn-mp3-aurora-stop').show();
+  };
+
+  document.getElementById('btn-mp3-aurora-stop').onclick = function() {
+    auroraPlayer.stop();
   };
   </script>
 </body>
