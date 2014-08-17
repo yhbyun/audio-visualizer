@@ -58,6 +58,8 @@ function processAudio(e) {
     //console.log('n=' + n + ', first=' + signal[0]);
   }
 
+  //logger.debug('signal length=' + n);
+
   fft.forward(signal);
   var avgSpectrum = getAvgSpectrum();
 
@@ -65,6 +67,10 @@ function processAudio(e) {
     var bar = bars[i];
     bar.style.height = ( fft.spectrum[i]*maxH ) + 'px';
     bar.style.marginTop = ( fft.spectrum[i]*maxHby2 ) + 'px';
+    /*
+    bar.style.height = ( avgSpectrum[i]*maxH ) + 'px';
+    bar.style.marginTop = ( avgSpectrum[i]*maxHby2 ) + 'px';
+    */
     var r = Math.ceil((avgSpectrum[i+16]*10000)%255);
     var b = Math.ceil((avgSpectrum[i]*10000)%255);
     var g = Math.ceil( ((avgSpectrum[i]+avgSpectrum[i+16])*5000)%255);
@@ -92,6 +98,7 @@ function getAvgSpectrum(){
     ray /= 16;
     spectrum.push(ray);
   }
+  //logger.debug('spectrum length = ' + fft.spectrum.length); // 512
   return spectrum;
 }  
 
