@@ -14,9 +14,12 @@
   <button class="button" id="btn-mp3-aurora-play">MP3 Play(aurora)</button>
   <button class="button" id="btn-mp3-aurora-stop" style="display:none">Stop</button>
 
-  <div id="visuals" class="container"></div>
+  <div id="visualizer_wrapper">
+    <canvas id='canvas' width="800" height="350"></canvas>
+  </div>
   <div id="controls"></div>
 
+  <script src="./js/dsp.js"></script>
   <script>
   window.$ = window.jQuery = require('./bower_components/jquery/dist/jquery.min');
   var mp3Playing = false;
@@ -28,6 +31,7 @@
 
   var AV = require('av');
   require('mp3');
+  require('vorbis.js');
   require('av/src/devices/webaudio');
   var AnalyzerFilter = require('./js/filters/analyzer');
   var analyzerFilter = new AnalyzerFilter();
@@ -49,6 +53,9 @@
 
   document.getElementById('btn-mp3-aurora-play').onclick = function() {
     auroraPlayer = AV.Player.fromFile('./my-app/audio/test.mp3');
+    //auroraPlayer = AV.Player.fromFile('./my-app/audio/ACDC_-_Back_In_Black-sample.ogg');
+    //auroraPlayer = AV.Player.fromFile('./my-app/audio/Sample_of_-Another_Day_in_Paradise-.ogg');
+    //auroraPlayer = AV.Player.fromFile('./my-app/audio/16Hz-20kHz-Exp-CA-10sec.mp3');
     auroraPlayer.filters = [analyzerFilter];
 
     auroraPlayer.play();

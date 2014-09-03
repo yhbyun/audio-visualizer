@@ -4,8 +4,12 @@
   "main": "main.js",
   "dependencies": {
     "av": "^0.4.2",
+    "flac.js": "^0.2.1",
     "mp3": "^0.1.0",
+    "ogg.js": "^0.1.0",
+    "opus.js": "^0.1.1",
     "underscore": "^1.6.0",
+    "vorbis.js": "^0.1.1",
     "winston": "^0.7.3"
   }
 }
