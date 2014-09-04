@@ -2,7 +2,8 @@ var util = require('util')
   , Filter = require('av/src/filter')
   , DrawSpectrum = require('../draw-spectrum')
   , audioUtil = require('../audio-util')
-  , winston = require('winston');
+  , winston = require('winston')
+  , Arduino = require('../arduino');
 
 var logger = new (winston.Logger)({
   transports: [
@@ -11,7 +12,8 @@ var logger = new (winston.Logger)({
   ]
 });
 
-var FFT_FILTER_FEATURE = false;
+var FFT_FILTER_FEATURE = true;
+var ARDUINO_FEATURE = true;
 
 var defaultSmoothingTimeConstant = 0.8;
 var defaultMinDecibels = -100;
@@ -33,6 +35,9 @@ function AnalyzerFilter() {
   this.animationId = null;
   this.status = 0; //flag for sound is playing 1 or stopped 0
   this.drawer = new DrawSpectrum();
+  if (ARDUINO_FEATURE) {
+    this.arduino = new Arduino();
+  }
 };
 
 util.inherits(AnalyzerFilter, Filter);
@@ -99,7 +104,7 @@ AnalyzerFilter.prototype.drawSpectrum = function() {
   var self = this;
 
   var drawMeter = function() {
-    var bytes;
+    var bytes, i, j;
 
     if (FFT_FILTER_FEATURE) {
         bytes = audioUtil.getByteFrequencyData(fft, defaultMinDecibels, defaultMaxDecibels);
@@ -108,6 +113,12 @@ AnalyzerFilter.prototype.drawSpectrum = function() {
     }
 
     self.drawer.draw(bytes);
+    if (ARDUINO_FEATURE) {
+      // 512 bytes
+      for (i = 0, j = 0; i < 6; i++, j = j + 70) {
+        self.arduino.brightness(i, bytes[j]);
+      }
+    }
     self.animationId = requestAnimationFrame(drawMeter);
   }
   this.animationId = requestAnimationFrame(drawMeter);
