@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "main": "main.js",
   "dependencies": {
-    "av": "^0.4.2",
+    "av": "git://github.com/yhbyun/aurora.js.git#f18548",
     "flac.js": "^0.2.1",
     "johnny-five": "^0.8.8",
     "mp3": "^0.1.0",
