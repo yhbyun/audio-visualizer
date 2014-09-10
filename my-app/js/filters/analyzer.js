@@ -1,7 +1,6 @@
 var util = require('util')
   , Filter = require('av/src/filter')
   , DrawSpectrum = require('../draw-spectrum')
-  , audioUtil = require('../audio-util')
   , winston = require('winston')
   , Arduino = require('../arduino');
 
@@ -27,9 +26,6 @@ function AnalyzerFilter() {
 util.inherits(AnalyzerFilter, Filter);
 
 AnalyzerFilter.prototype.process = function(buffer, device) {
-  var freqByteData = new Uint8Array(device.analyser.frequencyBinCount);
-  device.analyser.getByteFrequencyData(freqByteData);
-
   if (this.status === 0) {
     this.status = 1; //playing
     this.drawSpectrum(device);
@@ -43,8 +39,8 @@ AnalyzerFilter.prototype.drawSpectrum = function(device) {
   var drawMeter = function() {
     var bytes, i, j;
 
-    bytes = new Uint8Array(device.analyser.frequencyBinCount);
-    device.analyser.getByteFrequencyData(bytes);
+    bytes = new Uint8Array(device.device.analyser.frequencyBinCount);
+    device.device.analyser.getByteFrequencyData(bytes);
 
     self.drawer.draw(bytes);
     if (ARDUINO_FEATURE) {
