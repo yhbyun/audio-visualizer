@@ -11,7 +11,9 @@ I tried .. but failed.
 $ git clone https://github.com/yhbyun/audio-visualizer.git
 
 $ cd audio-visualizer/my-app
-$ mkdir node_modules && cd $_
+$ npm install
+
+$ cd node_modules
 
 $ git clone https://github.com/yhbyun/node-lame --branch hotfixes/branch lame
 $ cd lame && npm install
@@ -22,10 +24,10 @@ $ git clone https://github.com/yhbyun/node-speaker --branch hotfixes/branch spea
 $ cd speaker && npm install
 $ HOME=~/.atom-shell-gyp node-gyp rebuild --target=0.11.13 --arch=x64 --dist-url=https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/dist
 
-$ cd ../..
+$ cd ../av
 $ npm install
 
-$ cd ..
+$ cd ../..
 $ bower install
 
 $ cd ..
